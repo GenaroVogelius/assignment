@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/assignment/",
   plugins: [
     react(),
     tailwindcss() as any, // Type assertion to avoid version conflicts
