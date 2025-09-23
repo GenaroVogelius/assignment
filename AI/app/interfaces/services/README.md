@@ -1,0 +1,1 @@
+Interfaces for domain or infrastructure services (e.g., email, payments, auth).

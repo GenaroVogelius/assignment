@@ -1,0 +1,1 @@
+Interfaces to external systems (messaging queues, third-party APIs, filesystems, etc.).

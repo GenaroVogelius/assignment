@@ -1,0 +1,40 @@
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    gcc \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Create non-root user
+RUN useradd -ms /bin/bash vscode && \
+    chown -R vscode:vscode /workspace
+
+# Install uv for faster package management
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --no-modify-path && \
+    mv /root/.local/bin/uv /usr/local/bin/ && \
+    chown vscode:vscode /usr/local/bin/uv
+
+# Copy project files
+COPY . /workspace/
+
+# Install the package and all dependencies in development mode
+RUN uv pip install --system -e .
+
+# Create log file and set permissions
+RUN touch /workspace/app.log && chown vscode:vscode /workspace/app.log
+
+# Switch to vscode user
+USER vscode
+
+# Expose port
+EXPOSE 8000

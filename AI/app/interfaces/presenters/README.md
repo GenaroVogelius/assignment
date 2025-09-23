@@ -1,0 +1,1 @@
+Interfaces to present returning data from use cases to delivery layer (e.g., for formatting, view models).
