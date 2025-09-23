@@ -57,6 +57,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 # Add rate limiter to the app
 app.state.limiter = limiter
 app.add_exception_handler(
