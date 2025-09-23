@@ -1,6 +1,8 @@
+import csv
+import io
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Path, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Path, Query, Request, Response
 
 from app.config.settings import Settings
 from app.core.models.review import Review, ReviewRequest
@@ -39,8 +41,8 @@ class MainRoutes:
                 "version": self.settings.VERSION,
                 "status": "running",
                 "docs": "/docs",
-                "health": "/health",
-                "auth": "/auth/login",
+                "health": f"{self.settings.API_PREFIX}/health",
+                "auth": f"{self.settings.API_PREFIX}/auth/login",
             }
 
         @self.router.get("/health")
@@ -69,8 +71,9 @@ class MainRoutes:
             score: Optional[int] = Query(
                 None, ge=1, le=10, description="Filter by score (1-10)"
             ),
+            csv: bool = Query(False, description="Return data in CSV format"),
         ):
-            """Get reviews for authenticated user with optional filters - Protected endpoint - Requires authentication - Rate limited to 10 requests per hour per IP"""
+            """Get reviews for authenticated user with optional filters - Protected endpoint - Requires authentication - Rate limited to 10 requests per hour per IP - Supports CSV export when csv=True"""
 
             language, status, score = self._clean_filters(language, status, score)
 
@@ -106,14 +109,28 @@ class MainRoutes:
                 "score": score if score is not None else "all",
             }
 
-            return {
-                "message": f"Retrieved {len(filtered_reviews)} reviews for {current_user.username}",
-                "username": current_user.username,
-                "email": current_user.email,
-                "filters_applied": filters_applied,
-                "total_reviews": len(filtered_reviews),
-                "reviews": filtered_reviews,
-            }
+            if csv:
+                # Return CSV format
+                csv_content = self._generate_csv_response(
+                    filtered_reviews, current_user, filters_applied
+                )
+                return Response(
+                    content=csv_content,
+                    media_type="text/csv",
+                    headers={
+                        "Content-Disposition": f"attachment; filename=reviews_{current_user.username}.csv"
+                    },
+                )
+            else:
+                # Return JSON format
+                return {
+                    "message": f"Retrieved {len(filtered_reviews)} reviews for {current_user.username}",
+                    "username": current_user.username,
+                    "email": current_user.email,
+                    "filters_applied": filters_applied,
+                    "total_reviews": len(filtered_reviews),
+                    "reviews": filtered_reviews,
+                }
 
         @self.router.post("/reviews")
         async def create_review(
@@ -208,3 +225,82 @@ class MainRoutes:
             else:
                 cleaned_args.append(value)
         return cleaned_args
+
+    def _generate_csv_response(
+        self, reviews: List[Review], user: User, filters_applied: dict
+    ) -> str:
+        """Generate CSV content from reviews data"""
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Write header row
+        headers = [
+            "Review ID",
+            "Language",
+            "Status",
+            "Overall Score",
+            "Category",
+            "Security Risk Level",
+            "Security Concerns",
+            "Suggestions",
+            "Code Submission",
+            "Refactored Example",
+            "Created At",
+            "Updated At",
+        ]
+        writer.writerow(headers)
+
+        # Write data rows
+        for review in reviews:
+            # Extract code review data safely
+            overall_score = ""
+            category = ""
+            security_risk_level = ""
+            security_concerns = ""
+            suggestions = ""
+            refactored_example = ""
+
+            if review.code_review:
+                overall_score = review.code_review.overall_score or ""
+                category = review.code_review.category or ""
+                suggestions = review.code_review.suggestions or ""
+                refactored_example = review.code_review.refactored_example or ""
+
+                if review.code_review.security_assessment:
+                    security_risk_level = (
+                        review.code_review.security_assessment.risk_level or ""
+                    )
+                    security_concerns = (
+                        "; ".join(review.code_review.security_assessment.concerns)
+                        if review.code_review.security_assessment.concerns
+                        else ""
+                    )
+
+            # Clean code submission for CSV (remove newlines and limit length)
+            code_submission = (
+                review.code_submission.replace("\n", " ").replace("\r", " ")[:500]
+                if review.code_submission
+                else ""
+            )
+
+            row = [
+                review.id or "",
+                review.language or "",
+                review.status or "",
+                overall_score,
+                category,
+                security_risk_level,
+                security_concerns,
+                suggestions.replace("\n", " ").replace("\r", " ")
+                if suggestions
+                else "",
+                code_submission,
+                refactored_example.replace("\n", " ").replace("\r", " ")
+                if refactored_example
+                else "",
+                review.created_at.isoformat() if review.created_at else "",
+                review.updated_at.isoformat() if review.updated_at else "",
+            ]
+            writer.writerow(row)
+
+        return output.getvalue()
