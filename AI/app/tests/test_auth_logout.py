@@ -6,7 +6,6 @@ Tests the complete logout flow including token blacklisting.
 
 from unittest.mock import patch
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -25,7 +24,6 @@ class TestLogout:
         assert logout_response.status_code == 200
         logout_data = logout_response.json()
         assert "message" in logout_data
-
 
     def test_logout_with_invalid_token(self, client: TestClient):
         """Test logout with an invalid token."""
@@ -49,14 +47,12 @@ class TestLogoutAsync:
     """Async tests for logout functionality."""
 
     @patch("app.infrastructure.dependencies.get_authenticator")
-    async def test_logout_flow_async(self, mock_auth, auth_headers):
+    async def test_logout_flow_async(self, mock_auth, auth_headers, real_client):
         """Test the complete logout flow using async httpx client."""
         # Setup mocks
         mock_auth.return_value.blacklist_token.return_value = True
 
-        async with httpx.AsyncClient() as client:
-            # Step 1: Logout to blacklist the token
-            logout_response = await client.post(
-                "http://localhost:8000/api/logout", headers=auth_headers
-            )
-            assert logout_response.status_code == 200
+        # Use the test client instead of trying to connect to a real server
+        # This avoids connection errors in CI environments
+        logout_response = real_client.post("/api/logout", headers=auth_headers)
+        assert logout_response.status_code == 200

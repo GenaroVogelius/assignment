@@ -35,10 +35,21 @@ jobs:
           cd AI
           uv sync
 
+      - name: Setup test environment
+        run: |
+          cd AI
+          mkdir -p logs
+          # Set required environment variables for testing
+          echo "DEBUG=True" >> $GITHUB_ENV
+          echo "DATABASE_TYPE=mongodb" >> $GITHUB_ENV
+          echo "MONGODB_URL=mongodb://test:test@localhost:27017/test_db" >> $GITHUB_ENV
+          echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+
+
       - name: Run tests
         run: |
           cd AI
-          uv run pytest
+          uv run pytest -v
 
       - name: Build Docker image
         run: |
