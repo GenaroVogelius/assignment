@@ -44,7 +44,10 @@ jobs:
           echo "DATABASE_TYPE=mongodb" >> $GITHUB_ENV
           echo "MONGODB_URL=mongodb://test:test@localhost:27017/test_db" >> $GITHUB_ENV
           echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
-
+          echo "AI_PROVIDER=groq" >> $GITHUB_ENV
+          echo "AI_MODEL=meta-llama/llama-4-scout-17b-16e-instruct" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=test-key" >> $GITHUB_ENV
+          echo "OPENAI_BASE_URL=https://api.groq.com/openai/v1" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
