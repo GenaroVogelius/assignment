@@ -50,7 +50,7 @@ class IATasks:
             # Get the existing review
             existing_review = await self.review_use_case.get_review_by_id(review_id)
             if not existing_review:
-                print(f"Review with id {review_id} not found")
+                logger.error(f"Review with id {review_id} not found")
                 return
 
             # Parse JSON response and validate against Pydantic model
@@ -103,18 +103,13 @@ class IATasks:
 
                 # Validate against Pydantic model
                 validated_response = CodeReviewIAResponse(**json_data)
-                code_review = validated_response.model_dump()
+                code_review = validated_response
             except (json.JSONDecodeError, ValueError, TypeError) as e:
-                # Fallback to storing as string if parsing/validation fails
-                code_review = {
-                    "raw_response": str(code_review_response)
-                    if code_review_response is not None
-                    else "None",
-                    "error": str(e),
-                }
+                # Fallback to storing as CodeReviewIAResponse
+                code_review = None
 
             existing_review.code_review = code_review
-            existing_review.status = "completed"
+            existing_review.status = "completed" if code_review else "rejected"
             existing_review.updated_at = datetime.utcnow()
 
             # Save updated review

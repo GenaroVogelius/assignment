@@ -37,7 +37,7 @@ export function ReviewsPanel({
           </h3>
           {reviews.length > 0 && (
             <Button onClick={exportFilteredReviews} variant="outline" size="sm">
-              📥 Export
+              📥 Export all reviews into CSV
             </Button>
           )}
         </div>

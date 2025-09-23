@@ -13,6 +13,7 @@ export interface CodeReview {
 
 export interface ReviewResponse {
   id: string;
+  message: string;
   language: string;
   code_submission: string;
   code_review: CodeReview;

@@ -80,15 +80,12 @@ export const fetchReviewsByFilters = async (
 
 export const useGetReviewsByFilters = (
   params: ReviewsByFiltersParams = {},
-  options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: ["reviews", "filters", params],
     queryFn: () => fetchReviewsByFilters(params),
-    enabled: options?.enabled !== undefined ? options.enabled : true, // Use provided enabled or default to true
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     retry: (failureCount, error) => {
-      // Don't retry on 401 errors (authentication issues)
       if (error instanceof Error && error.message.includes("401")) {
         return false;
       }

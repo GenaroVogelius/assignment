@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { AnalyticsDashboard } from "@/features/AnalyticsDashboard";
+// import { AnalyticsDashboard } from "@/features/AnalyticsDashboard";
 import { CodeSubmissionForm } from "@/features/CodeSubmissionForm";
 import { ReviewDashboard } from "@/features/ReviewDashboard";
 import React from "react";
@@ -48,10 +48,10 @@ export const MainDashboard: React.FC = () => {
       value: Enum.Reviews,
       component: <ReviewDashboard />,
     },
-    {
-      value: Enum.Analytics,
-      component: <AnalyticsDashboard />,
-    },
+    // {
+    //   value: Enum.Analytics,
+    //   component: <AnalyticsDashboard />,
+    // },
   ];
   return (
     <div className="p-4 min-h-screen bg-background">

@@ -9,7 +9,7 @@ from app.core.models.review import Review, ReviewRequest
 from app.core.models.user import User
 from app.infrastructure.api.auth_routes import AuthRoutes
 from app.infrastructure.db.mongo.mongo_repository import MongoReviewRepository
-from app.infrastructure.dependencies import get_review_repository
+from app.infrastructure.dependencies import get_review_repository, limiter
 from app.infrastructure.jobs.tasks import IATasks
 from app.interfaces.repositories.review_repository_interface import (
     ReviewRepositoryInterface,
@@ -55,7 +55,6 @@ class MainRoutes:
             }
 
         @self.router.get("/reviews")
-        # @limiter.limit("10/hour")
         async def get_reviews(
             request: Request,
             current_user: User = Depends(
@@ -111,14 +110,15 @@ class MainRoutes:
 
             if csv:
                 # Return CSV format
-                csv_content = self._generate_csv_response(
+                csv_bytes = self._generate_csv_response(
                     filtered_reviews, current_user, filters_applied
                 )
                 return Response(
-                    content=csv_content,
-                    media_type="text/csv",
+                    content=csv_bytes,
+                    media_type="text/csv; charset=utf-8",
                     headers={
-                        "Content-Disposition": f"attachment; filename=reviews_{current_user.username}.csv"
+                        "Content-Disposition": f"attachment; filename=reviews_{current_user.username}.csv",
+                        "Content-Type": "text/csv; charset=utf-8",
                     },
                 )
             else:
@@ -133,6 +133,7 @@ class MainRoutes:
                 }
 
         @self.router.post("/reviews")
+        @limiter.limit("10/hour")
         async def create_review(
             review_request: ReviewRequest,
             background_tasks: BackgroundTasks,
@@ -189,7 +190,7 @@ class MainRoutes:
             review = await self.review_use_case.get_review_by_id(review_id)
 
             if not review:
-                return {"message": "Review not found", "review_id": review_id}
+                return {"message": "Review not found"}
 
             return {
                 "message": "Review retrieved successfully",
@@ -200,20 +201,6 @@ class MainRoutes:
                 "status": review.status,
                 "created_at": review.created_at,
                 "updated_at": review.updated_at,
-            }
-
-        @self.router.get("/protected")
-        async def protected_endpoint(
-            current_user: User = Depends(
-                self.auth_routes.get_current_active_user_dependency
-            ),
-        ):
-            """Protected endpoint - Requires authentication"""
-            return {
-                "message": f"Hello {current_user.username}!",
-                "user_id": str(current_user.id),
-                "email": current_user.email,
-                "status": "authenticated",
             }
 
     def _clean_filters(self, *args):
@@ -228,13 +215,13 @@ class MainRoutes:
 
     def _generate_csv_response(
         self, reviews: List[Review], user: User, filters_applied: dict
-    ) -> str:
+    ) -> bytes:
         """Generate CSV content from reviews data"""
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Convert reviews to dictionaries
+        dicts = [self._convert_review_to_dict(review) for review in reviews]
 
-        # Write header row
-        headers = [
+        # Define fieldnames (headers)
+        fieldnames = [
             "Review ID",
             "Language",
             "Status",
@@ -248,59 +235,80 @@ class MainRoutes:
             "Created At",
             "Updated At",
         ]
-        writer.writerow(headers)
 
-        # Write data rows
-        for review in reviews:
-            # Extract code review data safely
-            overall_score = ""
-            category = ""
-            security_risk_level = ""
-            security_concerns = ""
-            suggestions = ""
-            refactored_example = ""
+        output = io.StringIO()
+        writer = csv.DictWriter(
+            output,
+            fieldnames=fieldnames,
+            delimiter=";",
+            quotechar='"',
+            quoting=csv.QUOTE_MINIMAL,
+            lineterminator="\n",
+        )
 
-            if review.code_review:
-                overall_score = review.code_review.overall_score or ""
-                category = review.code_review.category or ""
-                suggestions = review.code_review.suggestions or ""
-                refactored_example = review.code_review.refactored_example or ""
+        writer.writeheader()
+        writer.writerows(dicts)
 
-                if review.code_review.security_assessment:
-                    security_risk_level = (
-                        review.code_review.security_assessment.risk_level or ""
-                    )
-                    security_concerns = (
-                        "; ".join(review.code_review.security_assessment.concerns)
-                        if review.code_review.security_assessment.concerns
-                        else ""
-                    )
+        # Get the CSV content and encode it with UTF-8 BOM
+        csv_content = output.getvalue()
+        # Add UTF-8 BOM and encode to bytes
+        csv_bytes = ("\ufeff" + csv_content).encode("utf-8")
+        return csv_bytes
 
-            # Clean code submission for CSV (remove newlines and limit length)
-            code_submission = (
-                review.code_submission.replace("\n", " ").replace("\r", " ")[:500]
-                if review.code_submission
+    def _convert_review_to_dict(self, review: Review) -> dict:
+        """Convert a Review object to a dictionary for CSV export"""
+        # Extract code review data safely
+        overall_score = ""
+        category = ""
+        security_risk_level = ""
+        security_concerns = ""
+        suggestions = ""
+        refactored_example = ""
+
+        if review.code_review:
+            overall_score = (
+                str(review.code_review.overall_score)
+                if review.code_review.overall_score is not None
                 else ""
             )
+            category = review.code_review.category or ""
+            suggestions = review.code_review.suggestions or ""
+            refactored_example = review.code_review.refactored_example or ""
 
-            row = [
-                review.id or "",
-                review.language or "",
-                review.status or "",
-                overall_score,
-                category,
-                security_risk_level,
-                security_concerns,
-                suggestions.replace("\n", " ").replace("\r", " ")
-                if suggestions
-                else "",
-                code_submission,
-                refactored_example.replace("\n", " ").replace("\r", " ")
-                if refactored_example
-                else "",
-                review.created_at.isoformat() if review.created_at else "",
-                review.updated_at.isoformat() if review.updated_at else "",
-            ]
-            writer.writerow(row)
+            if review.code_review.security_assessment:
+                security_risk_level = (
+                    review.code_review.security_assessment.risk_level or ""
+                )
+                security_concerns = (
+                    "; ".join(review.code_review.security_assessment.concerns)
+                    if review.code_review.security_assessment.concerns
+                    else ""
+                )
 
-        return output.getvalue()
+        # Clean code submission for CSV (remove newlines and limit length)
+        code_submission = (
+            review.code_submission.replace("\n", " ").replace("\r", " ")[:500]
+            if review.code_submission
+            else ""
+        )
+
+        return {
+            "Review ID": review.id or "",
+            "Language": review.language or "",
+            "Status": review.status or "",
+            "Overall Score": overall_score,
+            "Category": category,
+            "Security Risk Level": security_risk_level,
+            "Security Concerns": security_concerns,
+            "Suggestions": suggestions.replace("\n", " ").replace("\r", " ")
+            if suggestions
+            else "",
+            "Code Submission": code_submission,
+            "Refactored Example": refactored_example.replace("\n", " ").replace(
+                "\r", " "
+            )
+            if refactored_example
+            else "",
+            "Created At": review.created_at.isoformat() if review.created_at else "",
+            "Updated At": review.updated_at.isoformat() if review.updated_at else "",
+        }

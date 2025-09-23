@@ -1,11 +1,12 @@
 import os
 from typing import Any, Dict
 
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
+
 from app.core.enums import ConfigLLm, ResponseFormat
 from app.core.system_prompts.expert_review import expert_review_prompt
 from app.infrastructure.utils.decorators.singleton import singleton
-from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
 
 load_dotenv()
 

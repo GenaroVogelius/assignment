@@ -9,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ../.devcontainer/devcontainer.env
+      - devcontainer.env
     environment:
       - PYTHONPATH=/workspace
       - MONGODB_URL=mongodb://admin:password123@mongodb:27017/ai_service?authSource=admin

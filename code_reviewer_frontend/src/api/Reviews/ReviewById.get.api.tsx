@@ -40,13 +40,11 @@ export const fetchReviewById = async (
 
 export const useGetReviewById = (
   reviewId: string,
-  options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: ["review", reviewId],
     queryFn: () => fetchReviewById(reviewId),
-    enabled: options?.enabled !== undefined ? options.enabled : !!reviewId, // Use provided enabled or default to reviewId check
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    staleTime: 5 * 60 * 1000, 
     retry: (failureCount, error) => {
       // Don't retry on 404 or 401 errors
       if (error instanceof Error && error.message.includes("404")) {

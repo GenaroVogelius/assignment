@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  exportToCsv,
   PROGRAMMING_LANGUAGES,
   SCORE_FILTERS,
   STATUS_FILTERS,
@@ -17,6 +18,7 @@ import { ReviewFilters } from "./components/ReviewFilters";
 import { ReviewsPanel } from "./components/ReviewsPanel";
 
 import type { ReviewResponse } from "@/api/Reviews/types";
+import { toast } from "sonner";
 
 export function ReviewDashboard() {
   const programmingLanguagesWithAll = ["all", ...PROGRAMMING_LANGUAGES];
@@ -42,65 +44,50 @@ export function ReviewDashboard() {
     useState<boolean>(false);
 
   const exportFilteredReviews = () => {
-    const csvContent = [
-      [
-        "Review ID",
-        "Language",
-        "Status",
-        "Score",
-        "Suggestions",
-        "Created At",
-      ].join(","),
-      ...filteredReviews.map((review) =>
-        [
-          `"${review.id}"`,
-          review.language,
-          review.review_status,
-          review.code_review.overall_score.toString(),
-          `"${review.code_review.suggestions}"`,
-          review.created_at,
-        ].join(",")
-      ),
-    ].join("\n");
+    const headers = [
+      "Review ID",
+      "Language",
+      "Status",
+      "Score",
+      "Suggestions",
+      "Created At",
+    ];
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `filtered-reviews-${
+    const rows = [
+      headers,
+      ...filteredReviews.map((review) => [
+        review.id,
+        review.language,
+        review.status,
+        review.code_review.overall_score,
+        review.code_review.suggestions,
+        review.created_at,
+      ]),
+    ];
+
+    const filename = `filtered-reviews-${
       new Date().toISOString().split("T")[0]
     }.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportToCsv(filename, rows);
   };
 
-  // Hooks para obtener datos - deben estar en el nivel superior del componente
   const {
     data: reviewByIdData,
     isLoading: isLoadingById,
     error: errorById,
     refetch: refetchById,
-  } = useGetReviewById(currentSearchId, {
-    enabled: false, // No ejecutar automáticamente
-  });
+  } = useGetReviewById(currentSearchId);
 
   const {
     data: reviewsByFiltersData,
     isLoading: isLoadingByFilters,
     error: errorByFilters,
     refetch: refetchByFilters,
-  } = useGetReviewsByFilters(
-    {
-      language: languageFilter,
-      status: statusFilter,
-      score: scoreFilter,
-    },
-    {
-      enabled: false, // No ejecutar automáticamente
-    }
-  );
+  } = useGetReviewsByFilters({
+    language: languageFilter,
+    status: statusFilter,
+    score: scoreFilter,
+  });
 
   // Effect para ejecutar las queries cuando se activan los triggers
   useEffect(() => {
@@ -116,26 +103,31 @@ export function ReviewDashboard() {
     refetchByFilters,
   ]);
 
-  // Determinar qué datos usar basado en el trigger activo
   const data = triggerSearchById ? reviewByIdData : reviewsByFiltersData;
   const isLoading = triggerSearchById ? isLoadingById : isLoadingByFilters;
   const error = triggerSearchById ? errorById : errorByFilters;
 
-  // TODO: Usar isLoading y error para mostrar estados de carga y errores en la UI
-  // Temporal: usar las variables para evitar warnings de linting
-  if (isLoading || error) {
-    // Estas variables estarán disponibles para uso futuro en la UI
-  }
 
-  // Effect para procesar los datos cuando se reciban de las APIs
   useEffect(() => {
     if (data) {
       if (triggerSearchById && reviewByIdData) {
-        // Si es búsqueda por ID, crear un array con un solo elemento
-        setFilteredReviews([reviewByIdData]);
+        if (reviewByIdData.message === "Review not found") {
+          toast.error("Review not found", {
+            description: "The review id is not valid.",
+          });
+        } else if (reviewByIdData.message === "Review retrieved successfully") {
+          setFilteredReviews([reviewByIdData]);
+        }
       } else if (triggerSearchByFilters && reviewsByFiltersData) {
-        // Si es búsqueda por filtros, usar el array de reviews
         setFilteredReviews(reviewsByFiltersData.reviews || []);
+        if (
+          reviewsByFiltersData.reviews &&
+          reviewsByFiltersData.reviews.length === 0
+        ) {
+          toast.error("No reviews found", {
+            description: "No reviews found with the filters applied.",
+          });
+        }
       }
     }
   }, [
@@ -157,6 +149,7 @@ export function ReviewDashboard() {
     setTriggerSearchById(false);
     setTriggerSearchByFilters(true);
   };
+
 
   return (
     <div className="space-y-6">
@@ -183,13 +176,12 @@ export function ReviewDashboard() {
           />
         </CardContent>
       </Card>
-
-      <ReviewsPanel
-        reviews={filteredReviews}
-        exportFilteredReviews={exportFilteredReviews}
-        selectedReview={selectedReview}
-        setSelectedReview={setSelectedReview}
-      />
+        <ReviewsPanel
+          reviews={filteredReviews}
+          exportFilteredReviews={exportFilteredReviews}
+          selectedReview={selectedReview}
+          setSelectedReview={setSelectedReview}
+        />
     </div>
   );
 }

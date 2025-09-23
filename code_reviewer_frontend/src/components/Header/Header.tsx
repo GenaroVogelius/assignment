@@ -7,10 +7,6 @@ export function Header() {
   const { tokens } = useAuthStore();
   const logoutUserMutation = useLogoutUser();
 
-
-  console.log(tokens);
-
-
   const handleLogout = async () => {
     if (tokens?.access_token) {
       try {
