@@ -150,3 +150,12 @@ Once the application is running, you can access:
 
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
+
+
+### Key Endpoints
+
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User authentication
+- `POST /api/reviews` - Submit code for review
+- `GET /api/reviews` - Get user's reviews with filtering
+- `GET /api/reviews/{id}` - Get specific review details

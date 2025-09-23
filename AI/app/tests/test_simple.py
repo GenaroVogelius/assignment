@@ -51,20 +51,19 @@ class TestSimple:
         # This test verifies the endpoints exist and respond
         # In a real implementation, these would return 422 for missing fields
 
-        # Test missing username - should still work with simplified endpoint
         response = client.post(
             "/api/register", json={"email": "test@example.com", "password": "testpass"}
         )
-        assert response.status_code == 201  # Simplified endpoint always returns 201
+        assert response.status_code == 201 
 
         # Test missing email
         response = client.post(
             "/api/register", json={"username": "testuser", "password": "testpass"}
         )
-        assert response.status_code == 201  # Simplified endpoint always returns 201
+        assert response.status_code == 201 
 
         # Test missing password
         response = client.post(
             "/api/register", json={"username": "testuser", "email": "test@example.com"}
         )
-        assert response.status_code == 201  # Simplified endpoint always returns 201
+        assert response.status_code == 201 
