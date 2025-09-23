@@ -97,4 +97,5 @@ jobs:
           server: "${{ secrets.CAPROVER_URL }}"
           app: "${{ secrets.APP_NAME }}"
           token: "${{ secrets.APP_TOKEN }}"
+          branch: "main"
           image: ${{ env.IMAGE_URL }}
