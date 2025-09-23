@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -50,7 +51,7 @@ export const fetchReviewsByFilters = async (
     });
 
     const queryString = queryParams.toString();
-    const url = `http://127.0.0.1:8000/api/reviews${
+    const url = `${getApiUrl("/api/reviews")}${
       queryString ? `?${queryString}` : ""
     }`;
 

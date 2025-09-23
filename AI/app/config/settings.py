@@ -1,12 +1,11 @@
 import os
 from typing import Any, Dict
 
-from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
-
 from app.core.enums import ConfigLLm, ResponseFormat
 from app.core.system_prompts.expert_review import expert_review_prompt
 from app.infrastructure.utils.decorators.singleton import singleton
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
 load_dotenv()
 
@@ -18,7 +17,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     # Database settings
     DATABASE_TYPE: str = os.getenv("DATABASE_TYPE", "mongodb")  # mongodb, postgresql
-    MONGODB_URL: str = os.getenv("DATABASE_URL", "mongodb://admin:password123@mongodb:27017/ai_service?authSource=admin")
+    MONGODB_URL: str = os.getenv(
+        "DATABASE_URL",
+        "mongodb://admin:password123@mongodb:27017/ai_service?authSource=admin",
+    )
     MONGODB_DATABASE: str = os.getenv("MONGODB_DATABASE", "ai_service")
     POSTGRESQL_URL: str = os.getenv("POSTGRESQL_URL", "")
     ALLOW_ORIGINS: str = os.getenv("ALLOW_ORIGINS", "*")
@@ -40,8 +42,8 @@ class Settings(BaseSettings):
 
     def _get_model_name(self) -> str:
         """Get the complete model name from environment variables"""
-        provider = os.getenv("AI_PROVIDER", "")
-        model = os.getenv("AI_MODEL", "")
+        provider = os.getenv("AI_PROVIDER", "groq")
+        model = os.getenv("AI_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
 
         if not provider or not model:
             raise ValueError(
@@ -70,26 +72,20 @@ class Settings(BaseSettings):
         """Get LLM configuration with proper type conversion"""
         return {
             ConfigLLm.MODEL: self._get_model_name(),
-            ConfigLLm.TEMPERATURE: float(
-                os.getenv("TEMPERATURE", "0.7")
-            ),
+            ConfigLLm.TEMPERATURE: float(os.getenv("TEMPERATURE", "0.7")),
             ConfigLLm.TIMEOUT: int(os.getenv("TIMEOUT", "30")),
             ConfigLLm.TOP_P: 0.9,
-            ConfigLLm.MAX_TOKENS: int(
-                os.getenv("MAX_TOKENS", "1000")
-            ),
-            ConfigLLm.PRESENCE_PENALTY: float(
-                os.getenv("PRESENCE_PENALTY", "0.1")
-            ),
-            ConfigLLm.FREQUENCY_PENALTY: float(
-                os.getenv("FREQUENCY_PENALTY", "0.1")
-            ),
+            ConfigLLm.MAX_TOKENS: int(os.getenv("MAX_TOKENS", "1000")),
+            ConfigLLm.PRESENCE_PENALTY: float(os.getenv("PRESENCE_PENALTY", "0.1")),
+            ConfigLLm.FREQUENCY_PENALTY: float(os.getenv("FREQUENCY_PENALTY", "0.1")),
             ConfigLLm.API_KEY: os.getenv("OPENAI_API_KEY"),
             ConfigLLm.OPENAI_BASE_URL: os.getenv(
                 "OPENAI_BASE_URL", "https://api.groq.com/openai/v1"
             ),
             ConfigLLm.RESPONSE_FORMAT: ResponseFormat.JSON_OBJECT,
             ConfigLLm.SEED: 42,
-            ConfigLLm.STOP_PHRASES: ["##", "END"], 
-            ConfigLLm.INSTRUCTIONS: os.getenv("EXPERT_REVIEW_PROMPT", expert_review_prompt),
+            ConfigLLm.STOP_PHRASES: ["##", "END"],
+            ConfigLLm.INSTRUCTIONS: os.getenv(
+                "EXPERT_REVIEW_PROMPT", expert_review_prompt
+            ),
         }

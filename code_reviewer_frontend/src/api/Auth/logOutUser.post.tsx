@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import axios from "axios";
 
 interface LogoutUserResponse {
@@ -9,7 +10,7 @@ export const logoutUser = async (
 ): Promise<LogoutUserResponse> => {
   try {
     const response = await axios.post<LogoutUserResponse>(
-      "http://127.0.0.1:8000/api/logout",
+      getApiUrl("/api/logout"),
       {},
       {
         headers: {

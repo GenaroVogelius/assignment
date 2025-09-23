@@ -1,6 +1,4 @@
 #!/bin/sh
 
-python manage.py collectstatic --no-input
-python manage.py makemigrations
-python manage.py migrate
-gunicorn capstone.wsgi --bind=0.0.0.0:80
+# Run the FastAPI application with uvicorn
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000

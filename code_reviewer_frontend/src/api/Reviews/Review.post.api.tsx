@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import { useAuthStore } from "@/stores/authStore";
 import axios from "axios";
 
@@ -22,7 +23,7 @@ export const submitCodeReview = async (
 
   try {
     const response = await axios.post<ReviewSubmissionResponse>(
-      "http://127.0.0.1:8000/api/reviews",
+      getApiUrl("/api/reviews"),
       submission,
       {
         headers: {

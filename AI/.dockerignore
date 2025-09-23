@@ -7,6 +7,8 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.mypy_cache/
 
 # Distribution / packaging
 dist/
@@ -16,6 +18,8 @@ build/
 # IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Git
 .git/
@@ -24,6 +28,24 @@ build/
 # Environment variables
 .env
 .env.*
+.env.local
+.env.production
 
 # Logs
-*.log 
+*.log
+logs/
+app.log/
+
+# Development files
+.devcontainer/
+scripts/
+README.md
+
+# Test files
+tests/
+*_test.py
+test_*.py
+
+# Documentation
+docs/
+*.md 

@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -14,7 +15,7 @@ export const fetchReviewById = async (
 
   try {
     const response = await axios.get<ReviewResponse>(
-      `http://127.0.0.1:8000/api/reviews/${reviewId}`,
+      getApiUrl(`/api/reviews/${reviewId}`),
       {
         headers: {
           "Content-Type": "application/json",

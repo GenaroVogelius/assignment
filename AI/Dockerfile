@@ -1,30 +1,49 @@
+# Use Python 3.13 slim image
 FROM python:3.13-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
+    gcc \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create workspace directory and set permissions
-RUN mkdir -p /workspace && chmod 777 /workspace
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# Create a non-root user
-RUN useradd -ms /bin/bash vscode && \
-    chown -R vscode:vscode /workspace
-
-# Set working directory
+# Create workspace directory
 WORKDIR /workspace
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Copy project files
+# Install dependencies using uv
+RUN uv sync --frozen --no-dev
+
+# Copy application code
 COPY . .
 
 # Set Python path
 ENV PYTHONPATH=/workspace
 
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /workspace
+
+
+# Create log file and set permissions
+RUN touch /workspace/app.log && chown appuser:appuser /workspace/app.log
+
 # Switch to non-root user
-USER vscode 
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run the application
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 

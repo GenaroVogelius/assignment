@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import axios from "axios";
 
 interface RegisterUserRequest {
@@ -15,10 +16,12 @@ interface RegisterUserResponse {
   };
 }
 
-export const registerUser = async (userData: RegisterUserRequest): Promise<RegisterUserResponse> => {
+export const registerUser = async (
+  userData: RegisterUserRequest
+): Promise<RegisterUserResponse> => {
   try {
     const response = await axios.post<RegisterUserResponse>(
-      "http://127.0.0.1:8000/api/register",
+      getApiUrl("/api/register"),
       userData,
       {
         headers: {
@@ -32,7 +35,9 @@ export const registerUser = async (userData: RegisterUserRequest): Promise<Regis
     if (axios.isAxiosError(error)) {
       throw new Error(
         `Failed to register user: ${
-          error.response?.data?.message || error.response?.statusText || error.message
+          error.response?.data?.message ||
+          error.response?.statusText ||
+          error.message
         }`
       );
     }

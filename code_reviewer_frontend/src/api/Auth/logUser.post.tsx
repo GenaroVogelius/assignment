@@ -1,3 +1,4 @@
+import { getApiUrl } from "@/config/env";
 import axios from "axios";
 
 interface LoginUserRequest {
@@ -17,7 +18,7 @@ export const loginUser = async (
 ): Promise<LoginUserResponse> => {
   try {
     const response = await axios.post<LoginUserResponse>(
-      "http://127.0.0.1:8000/api/login",
+      getApiUrl("/api/login"),
       userData,
       {
         headers: {
