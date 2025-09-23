@@ -13,7 +13,6 @@ export function Header() {
         await logoutUserMutation.mutateAsync(tokens.access_token);
       } catch (error) {
         console.error("Logout error:", error);
-        // The hook will still clear local state even if API call fails
       }
     }
   };

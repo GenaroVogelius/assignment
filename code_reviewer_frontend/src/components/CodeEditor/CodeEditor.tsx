@@ -66,13 +66,6 @@ export function CodeEditor({
     onChange(newValue);
   };
 
-  const handleFocus = () => {
-    // Focus handler for future enhancements
-  };
-
-  const handleBlur = () => {
-    // Blur handler for future enhancements
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Handle tab key for indentation
@@ -138,8 +131,6 @@ export function CodeEditor({
         ref={textareaRef}
         value={textareaValue}
         onChange={handleTextareaChange}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         required={required}

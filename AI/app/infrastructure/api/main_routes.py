@@ -135,6 +135,7 @@ class MainRoutes:
         @self.router.post("/reviews")
         @limiter.limit("10/hour")
         async def create_review(
+            request: Request,
             review_request: ReviewRequest,
             background_tasks: BackgroundTasks,
             current_user: User = Depends(
