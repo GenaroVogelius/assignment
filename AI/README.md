@@ -30,14 +30,6 @@ app/
 - Docker Compose
 - VS Code with Dev Containers extension (recommended)
 
-### Dev Container Setup
-
-1. Clone the repository
-2. Open the project in VS Code
-3. When the notification appears, click "Reopen in Container"
-4. Or manually: `Ctrl+Shift+P` → "Dev Containers: Reopen in Container"
-
-The dev container includes all necessary dependencies and environment configurations.
 
 ### Running the Application
 
@@ -48,13 +40,18 @@ The dev container includes all necessary dependencies and environment configurat
 docker-compose -f .devcontainer/docker-compose.local.yml up --build
 ```
 
-This will start the application with MongoDB database. The API will be available at `http://localhost:8000`
-
 #### Option 2: Inside the Dev Container
 
 ```bash
 # Inside the dev container
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+### Dev Container Setup
+
+1. Clone the repository
+2. Open the project in VS Code
+3. When the notification appears, click "Reopen in Container"
+4. Or manually: `Ctrl+Shift+P` → "Dev Containers: Reopen in Container"
+
+The dev container includes all necessary dependencies and environment configurations.
 ```
 
 The API will be available at `http://localhost:8000`

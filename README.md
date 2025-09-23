@@ -1,6 +1,7 @@
 # Assignment Project
 
-This repository contains two main components:
+Repository for the "AI-Powered Code Review System"
+This repo has a backend and a frontend:
 
 ## AI Microservice
 

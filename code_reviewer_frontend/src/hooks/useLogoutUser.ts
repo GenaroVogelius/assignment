@@ -7,14 +7,11 @@ export const useLogoutUser = () => {
 
   return useMutation({
     mutationFn: (accessToken: string) => logoutUser(accessToken),
-    onSuccess: (data) => {
-      console.log("User logged out successfully:", data);
-      // Clear tokens and user data from Zustand store
+    onSuccess: () => {
       logout();
     },
     onError: (error) => {
       console.error("Logout failed:", error);
-      // Even if the API call fails, we should still clear local state
       logout();
     },
   });
