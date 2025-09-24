@@ -101,6 +101,9 @@ class MainRoutes:
                     # If no score filter, include all reviews
                     filtered_reviews.append(review)
 
+            # Sort reviews by newest first (created_at descending)
+            filtered_reviews.sort(key=lambda x: x.created_at, reverse=True)
+
             # Determine if any filters were applied
             filters_applied = {
                 "language": language or "all",

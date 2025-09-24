@@ -25,8 +25,6 @@ export const fetchReviewById = async (
       }
     );
 
-    console.log(response.data);
-
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
