@@ -80,6 +80,7 @@ export function LogAccountForm() {
               onChange={(e) => setUsername(e.target.value)}
               disabled={loginUserMutation.isPending}
               required
+              autoComplete="username"
               className="h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
             />
           </div>
@@ -100,6 +101,7 @@ export function LogAccountForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loginUserMutation.isPending}
                 required
+                autoComplete="current-password"
                 className="h-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200 pr-12"
               />
               <Button

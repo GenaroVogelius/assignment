@@ -85,6 +85,7 @@ export const CreateAccountForm: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               disabled={registerUserMutation.isPending}
               required
+              autoComplete="email"
               className="h-12 border-slate-200 transition-all duration-200"
             />
           </div>
@@ -98,12 +99,13 @@ export const CreateAccountForm: React.FC = () => {
             </Label>
             <Input
               id="username"
-              type="username"
+              type="text"
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={registerUserMutation.isPending}
               required
+              autoComplete="username"
               className="h-12 border-slate-200 transition-all duration-200"
             />
           </div>
@@ -124,6 +126,7 @@ export const CreateAccountForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={registerUserMutation.isPending}
                 required
+                autoComplete="new-password"
                 className="h-12 border-slate-200 transition-all duration-200 pr-12"
               />
               <Button
