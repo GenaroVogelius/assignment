@@ -42,14 +42,13 @@ export function ReviewList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium">Review ID: {review.id}</h4>
-                  
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     📅{" "}
                     {safeFormatDate(new Date(review.created_at), "MMM d, yyyy")}
                   </div>
-                  {review.code_review.overall_score && (
+                  {review.code_review?.overall_score && (
                     <div
                       className={`font-medium ${getScoreColor(
                         review.code_review.overall_score
@@ -66,8 +65,8 @@ export function ReviewList({
                   <span className="ml-1 capitalize">{review.status}</span>
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                    {review.language}
-                  </Badge>
+                  {review.language}
+                </Badge>
               </div>
             </div>
           </CardContent>

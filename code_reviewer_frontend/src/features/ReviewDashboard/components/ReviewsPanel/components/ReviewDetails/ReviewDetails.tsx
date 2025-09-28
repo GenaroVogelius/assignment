@@ -8,7 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getScoreColor, getStatusColor, getStatusIcon, getRiskColor, safeFormatDate } from "@/lib/utils";
+import {
+  getRiskColor,
+  getScoreColor,
+  getStatusColor,
+  getStatusIcon,
+  safeFormatDate,
+} from "@/lib/utils";
 
 export function ReviewDetails({
   review,
@@ -19,7 +25,6 @@ export function ReviewDetails({
   isOpen: boolean;
   onClose: () => void;
 }) {
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -43,7 +48,7 @@ export function ReviewDetails({
 
         <div className="grid gap-6">
           {/* Overall Score */}
-          {review.code_review.overall_score && (
+          {review.code_review?.overall_score && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -61,39 +66,41 @@ export function ReviewDetails({
           )}
 
           {/* Security Assessment */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Security Assessment
-                <Badge
-                  className={getRiskColor(
-                    review.code_review.security_assessment.risk_level
-                  )}
-                >
-                  {review.code_review.security_assessment.risk_level.toUpperCase()}{" "}
-                  RISK
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {review.code_review.security_assessment.concerns.length > 0 ? (
-                <div className="space-y-2">
-                  <h4 className="font-medium">Security Concerns:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                    {review.code_review.security_assessment.concerns.map(
-                      (concern, index) => (
-                        <li key={index}>{concern}</li>
-                      )
+          {review.code_review?.security_assessment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Security Assessment
+                  <Badge
+                    className={getRiskColor(
+                      review.code_review.security_assessment.risk_level
                     )}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-green-600 font-medium">
-                  ✅ No security concerns identified
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                  >
+                    {review.code_review.security_assessment.risk_level.toUpperCase()}{" "}
+                    RISK
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {review.code_review.security_assessment.concerns.length > 0 ? (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Security Concerns:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                      {review.code_review.security_assessment.concerns.map(
+                        (concern, index) => (
+                          <li key={index}>{concern}</li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-green-600 font-medium">
+                    ✅ No security concerns identified
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Code Submission */}
           <Card>
@@ -108,7 +115,7 @@ export function ReviewDetails({
           </Card>
 
           {/* Suggestions */}
-          {review.code_review.suggestions && (
+          {review.code_review?.suggestions && (
             <Card>
               <CardHeader>
                 <CardTitle>Suggestions</CardTitle>
@@ -122,7 +129,7 @@ export function ReviewDetails({
           )}
 
           {/* Refactored Example */}
-          {review.code_review.refactored_example && (
+          {review.code_review?.refactored_example && (
             <Card>
               <CardHeader>
                 <CardTitle>Refactored Example</CardTitle>
@@ -136,7 +143,7 @@ export function ReviewDetails({
           )}
 
           {/* Category */}
-          {review.code_review.category && (
+          {review.code_review?.category && (
             <Card>
               <CardHeader>
                 <CardTitle>Category</CardTitle>
