@@ -95,10 +95,9 @@ jobs:
           tags: ${{ env.IMAGE_URL }}
 
       - name: Deploy Image to CapRover
-        uses: caprover/deploy-from-github@v1.1.2
+        uses: caprover/deploy-from-github@main
         with:
-          server: ${{ secrets.CAPROVER_URL }}
-          app: ${{ secrets.APP_NAME }}
-          token: ${{ secrets.APP_TOKEN }}
-          image: ${{ env.IMAGE_URL }}
-          branch : main
+          server: "${{ secrets.CAPROVER_URL }}"
+          app: "${{ secrets.APP_NAME }}"
+          token: "${{ secrets.APP_TOKEN }}"
+          image: "${{ env.IMAGE_URL }}"
