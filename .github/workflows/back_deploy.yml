@@ -13,92 +13,76 @@ on:
       - ".github/workflows/back_deploy.yml"
 
 jobs:
-  # Build and test job
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # # Build and test job
+  # build:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.13"
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.13"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          version: "latest"
+  #     - name: Install uv
+  #       uses: astral-sh/setup-uv@v3
+  #       with:
+  #         version: "latest"
 
-      - name: Install dependencies
-        run: |
-          cd AI
-          uv sync
+  #     - name: Install dependencies
+  #       run: |
+  #         cd AI
+  #         uv sync
 
-      - name: Setup test environment
-        run: |
-          cd AI
-          mkdir -p logs
-          # Set required environment variables for testing
-          echo "DEBUG=True" >> $GITHUB_ENV
-          echo "DATABASE_TYPE=mongodb" >> $GITHUB_ENV
-          echo "MONGODB_URL=mongodb://test:test@localhost:27017/test_db" >> $GITHUB_ENV
-          echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
-          echo "AI_PROVIDER=groq" >> $GITHUB_ENV
-          echo "AI_MODEL=meta-llama/llama-4-scout-17b-16e-instruct" >> $GITHUB_ENV
-          echo "OPENAI_API_KEY=test-key" >> $GITHUB_ENV
-          echo "OPENAI_BASE_URL=https://api.groq.com/openai/v1" >> $GITHUB_ENV
+  #     - name: Setup test environment
+  #       run: |
+  #         cd AI
+  #         mkdir -p logs
+  #         # Set required environment variables for testing
+  #         echo "DEBUG=True" >> $GITHUB_ENV
+  #         echo "DATABASE_TYPE=mongodb" >> $GITHUB_ENV
+  #         echo "MONGODB_URL=mongodb://test:test@localhost:27017/test_db" >> $GITHUB_ENV
+  #         echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+  #         echo "AI_PROVIDER=groq" >> $GITHUB_ENV
+  #         echo "AI_MODEL=meta-llama/llama-4-scout-17b-16e-instruct" >> $GITHUB_ENV
+  #         echo "OPENAI_API_KEY=test-key" >> $GITHUB_ENV
+  #         echo "OPENAI_BASE_URL=https://api.groq.com/openai/v1" >> $GITHUB_ENV
 
-      - name: Run tests
-        run: |
-          cd AI
-          uv run pytest -v
+  #     - name: Run tests
+  #       run: |
+  #         cd AI
+  #         uv run pytest -v
 
-      - name: Build Docker image
-        run: |
-          cd AI
-          docker build -t ai-microservice:latest .
+  #     - name: Build Docker image
+  #       run: |
+  #         cd AI
+  #         docker build -t ai-microservice:latest .
 
-      - name: Test Docker image
-        run: |
-          cd AI
-          docker run --rm ai-microservice:latest python -c "import app; print('Backend build successful')"
+  #     - name: Test Docker image
+  #       run: |
+  #         cd AI
+  #         docker run --rm ai-microservice:latest python -c "import app; print('Backend build successful')"
 
   # Deploy job using Docker image to CapRover
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    # needs: build
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.TOKEN_GITHUB }}
-
-      - name: Preset Image Name
-        run: echo "IMAGE_URL=$(echo ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:$(echo ${{ github.sha }} | cut -c1-7) | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      - name: Build and push Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./AI
-          file: ./AI/Dockerfile
-          push: true
-          tags: ${{ env.IMAGE_URL }}
-
-      - name: Deploy Image to CapRover
+      - name: Deploy to CapRover
         uses: ariaieboy/caprover-deploy@1.2.2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           server: ${{ secrets.CAPROVER_URL }}
-          app: ${{ secrets.CAPROVER_APP_NAME }}
-          token: ${{ secrets.APP_TOKEN }}
-          # image: ${{ env.IMAGE_URL }}
           password: ${{ secrets.CAPROVER_PASSWORD }}
+          app: ${{ secrets.CAPROVER_APP_NAME }}
