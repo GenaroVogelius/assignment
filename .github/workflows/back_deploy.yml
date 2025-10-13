@@ -105,4 +105,8 @@ jobs:
       - name: Deploy Image to CapRover
         run: |
           npm install -g caprover && \
-          caprover --caproverUrl ${{ secrets.CAPROVER_URL }} --appToken ${{ secrets.APP_TOKEN }} --appName ${{ secrets.APP_NAME }} --imageName ${{ env.IMAGE_URL }} deploy
+          caprover deploy \ 
+            --caproverUrl ${{ secrets.CAPROVER_URL }} \
+            --appToken ${{ secrets.APP_TOKEN }} \
+            --appName ${{ secrets.APP_NAME }} \
+            --imageName "ghcr.io/genarovogelius/assignment:$(echo ${{ github.sha }} | cut -c1-7)"
