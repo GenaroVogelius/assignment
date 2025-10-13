@@ -94,10 +94,15 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_URL }}
 
+#      - name: Deploy Image to CapRover
+#        uses: caprover/deploy-from-github@main
+#        with:
+#          server: ${{ secrets.CAPROVER_URL }}
+#          app: ${{ secrets.APP_NAME }}
+#          token: ${{ secrets.APP_TOKEN }}
+#          image: ${{ env.IMAGE_URL }}
+
       - name: Deploy Image to CapRover
-        uses: caprover/deploy-from-github@main
-        with:
-          server: ${{ secrets.CAPROVER_URL }}
-          app: ${{ secrets.APP_NAME }}
-          token: ${{ secrets.APP_TOKEN }}
-          image: ${{ env.IMAGE_URL }}
+        run: |
+          npm install -g caprover && \
+          caprover deploy --caproverUrl ${{ secrets.CAPROVER_URL }} --caproverToken ${{ secrets.APP_TOKEN }} --appName ${{ secrets.APP_NAME }} --imageName ${{ env.IMAGE_URL }}
