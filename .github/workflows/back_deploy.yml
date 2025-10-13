@@ -105,4 +105,4 @@ jobs:
       - name: Deploy Image to CapRover
         run: |
           npm install -g caprover && \
-          caprover deploy --caproverUrl ${{ secrets.CAPROVER_URL }} --caproverToken ${{ secrets.APP_TOKEN }} --appName ${{ secrets.APP_NAME }} --imageName ${{ env.IMAGE_URL }}
+          caprover deploy --caproverUrl ${{ secrets.CAPROVER_URL }} --appToken ${{ secrets.APP_TOKEN }} --appName ${{ secrets.APP_NAME }} --imageName ${{ env.IMAGE_URL }}
